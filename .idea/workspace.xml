@@ -4,16 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="acc3609b-4b84-4198-9c99-98501a3a6aac" name="Changes" comment="First Commit">
-      <change afterPath="$PROJECT_DIR$/Serial_COM.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/img/spacelab-logo-full-400x200.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/img/spacelab_transmitter_256x256.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/satellites/GOLDS-UFSC.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/satellites/floripasat-1.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/ui/cubesat-com.glade" afterDir="false" />
+    <list default="true" id="acc3609b-4b84-4198-9c99-98501a3a6aac" name="Changes" comment="Second Commit">
+      <change afterPath="$PROJECT_DIR$/Serial_Settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Serial.py" beforeDir="false" afterPath="$PROJECT_DIR$/Serial.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -112,13 +105,33 @@
       <option name="project" value="LOCAL" />
       <updated>1712757415437</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Second Commit">
+      <option name="closed" value="true" />
+      <created>1712758989655</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1712758989655</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="First Commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="First Commit" />
+    <MESSAGE value="Second Commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="Second Commit" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
