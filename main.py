@@ -1,19 +1,47 @@
-# This is a sample Python script.
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+import gi
+gi.require_version("Gtk","3.0")
+from gi.repository import Gtk
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-import serial.tools.list_ports as portlists
-import serial
+PEOPLE =    [
+            "Frank",
+            "Martha",
+            "Jim Bob",
+            "Francis"
+            ]
 
+class TreeCombo(object):
+    def __init__(self):
+        self.win = Gtk.Window(title="Combo with liststore")
+        self.win.connect('delete-event', Gtk.main_quit)
 
+        self.store = Gtk.ListStore(str)
+        for person in PEOPLE:
+            self.store.append([person])
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+        # self.combo = Gtk.ComboBox.new_with_model(self.store)
+        self.combo = Gtk.ComboBox()
 
+        self.tree = Gtk.TreeView(self.store)
+        self.selector = self.tree.get_selection()
+        self.selector.set_mode(Gtk.SelectionMode.MULTIPLE)
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+        self.combo_cell_text = Gtk.CellRendererText()
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+        self.column_text = Gtk.TreeViewColumn("Text", self.combo_cell_text, text=0)
+
+        self.tree.append_column(self.column_text)
+
+        self.combo.add(self.tree)
+
+        self.win.add(self.combo)
+
+        self.win.show_all()
+
+def main():
+    prog = TreeCombo()
+    Gtk.main()
+
+if __name__ == "__main__":
+    main()

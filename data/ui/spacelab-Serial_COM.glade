@@ -21,7 +21,6 @@
                 <property name="label" translatable="yes">Connect</property>
                 <property name="use-underline">True</property>
                 <property name="stock-id">gtk-connect</property>
-                <signal name="clicked" handler="on_button_connect_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -36,7 +35,6 @@
                 <property name="label" translatable="yes">Disconnect</property>
                 <property name="use-underline">True</property>
                 <property name="stock-id">gtk-disconnect</property>
-                <signal name="clicked" handler="on_button_disconnect_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -51,7 +49,6 @@
                 <property name="label" translatable="yes">Preferences</property>
                 <property name="use-underline">True</property>
                 <property name="stock-id">gtk-properties</property>
-                <signal name="clicked" handler="on_button_preferences_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -66,7 +63,6 @@
                 <property name="label" translatable="yes">Info</property>
                 <property name="use-underline">True</property>
                 <property name="stock-id">gtk-about</property>
-                <signal name="clicked" handler="on_toolbutton_about_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -895,7 +891,6 @@
                     <property name="can-focus">True</property>
                     <property name="width-chars">83</property>
                     <property name="input-purpose">terminal</property>
-                    <signal name="key-press-event" handler="on_Command_key_press_event" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -909,7 +904,6 @@
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="receives-default">True</property>
-                    <signal name="clicked" handler="on_Button_Send_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -979,7 +973,6 @@
                 <property name="receives-default">True</property>
                 <property name="image">image1</property>
                 <property name="always-show-image">True</property>
-                <signal name="activate" handler="on_Discard_Options_activate" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -995,7 +988,6 @@
                 <property name="receives-default">True</property>
                 <property name="image">Save</property>
                 <property name="always-show-image">True</property>
-                <signal name="activate" handler="on_Save_Preferences_activate" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>

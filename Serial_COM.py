@@ -53,27 +53,68 @@ class Serial_COM:
 
         self._load_preferences()
 
-        self.ngham = pyngham.PyNGHam()
-
-        self.decoded_packets_index = list()
-
     def _build_widgets(self):
+
+        # Main Window
         self.window = self.builder.get_object("CubeSAT_COM")
-        self.window = self.builder.get_object("window_main")
         if os.path.isfile(_ICON_FILE_LOCAL):
             self.window.set_icon_from_file(_ICON_FILE_LOCAL)
         else:
-            self.window.set_icon_from_file(_ICON_FILE_LINUX_SYSTEM)
+            pass
+            # self.window.set_icon_from_file(_ICON_FILE_LINUX_SYSTEM)
         self.window.set_wmclass(self.window.get_title(), self.window.get_title())
         self.window.connect("destroy", Gtk.main_quit)
 
+        # Action Buttons
+        self.button_connect = self.builder.get_object("button_connect")
+        self.button_connect.connect("clicked", self.serial_connection)
+
+        self.button_disconnect = self.builder.get_object("button_disconnect")
+        self.button_disconnect.connect("clicked", self.serial_disconnect)
+
+        self.button_preferences = self.builder.get_object("button_preferences")
+        self.button_preferences.connect("clicked", self.on_preferences_clicked)
+        
+        self.toolbutton_clean = self.builder.get_object("toolbutton_clean")
+        self.toolbutton_clean.connect("clicked", self.on_toolbutton_clean_clicked)
+
+        # Serial Commands
+        self.Command = self.builder.get_object("Command")
+        self.Command.connect("key-press-event", self.on_Command_key_press)
+
+        self.Button_Send = self.builder.get_object("Button_Send")
+        self.Button_Send.connect("clicked", self.on_Button_Send_clicked)
+
+        self.Recieved_Text = self.builder.get_object("Recieved_Text")
+
+        # Settings Window
+        self.COMSettings = self.builder.get_object("COMSettings")
+
+        # Settings Window Buttons
+        self.Save_Preferences = self.builder.get_object("Save_Preferences")
+        self.Save_Preferences.connect("clicked", self.on_Save_Preferences_clicked)
+
+        self.Discard_Options = self.builder.get_object("Discard_Options")
+        self.Discard_Options.connect("clicked", self.on_Discard_Options_clicked)
+
+    def _load_preferences(self):
+        self.Recieved_Text.set_editable(False)
+
         # Serial Port Settings
-        self.Serial_Port = self.builder.get_object("Serial_Port")
-        self.Baud_Rate = self.builder.get_object("Baud_Rate")
-        self.Parity = self.builder.get_object("Parity")
-        self.Stop_bits = self.builder.get_object("Stop_bits")
-        self.Data_bits = self.builder.get_object("Data_bits")
-        self.Flow_Control = self.builder.get_object("Flow_Control")
+        self.Serial_Port_Box = self.builder.get_object("Serial_Port")
+        self.Baud_Rate_Box = self.builder.get_object("Baud_Rate")
+        self.Parity_Box = self.builder.get_object("Parity")
+        self.Stop_bits_Box = self.builder.get_object("Stop_bits")
+        self.Data_bits_Box = self.builder.get_object("Data_bits")
+        self.Flow_Control_Box = self.builder.get_object("Flow_Control")
+
+        self.Serial_Port = None
+        self.Baud_Rate = 115200
+        self.Parity = serial.PARITY_NONE
+        self.Stop_bits = serial.STOPBITS_ONE
+        self.Data_bits = serial.EIGHTBITS
+        self.Flow_Control = serial.FLOWCONTROL_NONE
+
 
     def remove_ansi_color(string: str) -> str:
         ansi_escape = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
@@ -81,20 +122,60 @@ class Serial_COM:
 
     def run(self):
         self.window.show_all()
-
         Gtk.main()
 
+    def onDestroy(self, *args):
+        Gtk.main_quit()    
+   
     def serial_connection(self):
         self.Serial = serial.Serial(port=self.Serial_Port, baudrate=self.Baud_Rate, parity=self.Parity, stopbits=self.Stop_bits, bytesize=self.Data_bits, timeout=1, flowcontrol=self.Flow_Control)
-    
+   
     def serial_disconnect(self):
         self.Serial.close()
 
-    def onDestroy(self, *args):
-        Gtk.main_quit()
+    def on_preferences_clicked(self, button):
+        self.COMSettings.show()
+        self.load_Settings()
 
-    def onButtonPressed(self, button):
-        print("Hello World!")
+    def load_Settings(self):
+        self.Serial_Port_Box.set_entry_text([comport.device for comport in serial.tools.list_ports.comports()])
+
+        self.Serial_Port_Box.set_active_id(self.Serial_Port)
+        self.Baud_Rate_Box.set_active_id(self.Baud_Rate)
+        self.Parity_Box.set_active_id(self.Parity)
+        self.Stop_bits_Box.set_active_id(self.Stop_bits)
+        self.Data_bits_Box.set_active_id(self.Data_bits)
+        self.Flow_Control_Box.set_active_id(self.Flow_Control)
+
+        
+    def on_Save_Preferences_clicked(self, button):
+        self.Serial_Port = self.Serial_Port_Box.get_active_text()
+        self.Baud_Rate = int(self.Baud_Rate_Box.get_active_text())
+        self.Parity = self.Parity_Box.get_active_text()
+        self.Stop_bits = int(self.Stop_bits_Box.get_active_text())
+        self.Data_bits = int(self.Data_bits_Box.get_active_text())
+        self.Flow_Control = self.Flow_Control_Box.get_active_text()
+        self.COMSettings.hide()
+
+    def on_Discard_Options_clicked(self, button):
+        self.COMSettings.hide()
+
+    def on_Command_key_press(self, widget, event):
+        if event.keyval == Gdk.KEY_Return or event.keyval == Gdk.KEY_KP_Enter: 
+            self.send_command()
+
+    def on_Button_Send_clicked(self, button):
+        self.send_command()
+
+    def on_toolbutton_clean_clicked(self, button):
+        self.Recieved_Text.set_text("")
+
+    def send_command(self):
+        self.Serial.write(self.Command.get_text().encode())
+        self.Command.set_text("")
+
+    def receive_command(self):
+        self.Recieved_Text.set_text(self.serial_read())
 
     def setup_logging(module: str, log_dir: str):
         filename = "./" + log_dir + "/" + module + ".log"
@@ -113,10 +194,6 @@ class Serial_COM:
             level=logging.DEBUG,
             format="[%(asctime)s][%(levelname)s] > %(message)s",
         )
-
-
-    # def remove_ansi_color(string: str) -> str:
-    #     return re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])").sub("", string)
 
     def save_logs(line: str):
         """
