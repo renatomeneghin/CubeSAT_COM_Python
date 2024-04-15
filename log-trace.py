@@ -42,7 +42,7 @@ def save_logs(line: str):
         logging.info(logline)
 
 
-def serial_connection(port, baudrate):
+def serial_connection(port, baudrate) -> serial.Serial:
     stream = serial.Serial(port=port, baudrate=baudrate)
     return stream
 
