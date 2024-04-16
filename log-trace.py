@@ -42,7 +42,7 @@ def save_logs(line: str):
         logging.info(logline)
 
 
-def serial_connection(port, baudrate) -> serial.Serial:
+def serial_connection(port, baudrate):
     stream = serial.Serial(port=port, baudrate=baudrate)
     return stream
 
@@ -58,7 +58,14 @@ def log_trace_cli():
         description="Reads the floripasat-2 modules log through UART",
     )
 
-    cli_parser.add_argument("PORT", type=str, help="serial port to listen to")
+    cli_parser.add_argument(
+        "-p",
+        "--PORT",
+        action="store",
+        default="/dev/ttyUSB0",
+        type=str,
+        help="serial port to listen to",
+    )
 
     cli_parser.add_argument(
         "-f",
@@ -78,11 +85,13 @@ def log_trace_cli():
         help="sets the log directory",
     )
 
-    args = cli_parser.parse_args()
+    # argv = ["", "ttyUSB0", "module", LOG_DIR]
 
-    setup_logging(args.log_file, args.log_dir)
+    args = vars(cli_parser.parse_args())
 
-    dev = serial_connection(args.PORT, BAUD)
+    setup_logging(args["log_file"], args["log_dir"])
+
+    dev = serial_connection(args["PORT"], BAUD)
 
     try:
         while True:

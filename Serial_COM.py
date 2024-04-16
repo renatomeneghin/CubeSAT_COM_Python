@@ -9,6 +9,7 @@ import argparse
 import re
 import logging
 import os
+import threading
 
 ERROR_CODE = "\033[1;31m"
 BAUD = 115200
@@ -98,6 +99,11 @@ class Serial_COM:
         self.Discard_Options.connect("clicked", self.on_Discard_Options_clicked)
 
     def _load_preferences(self):
+        self.button_connect.set_sensitive(True)
+        self.button_disconnect.set_sensitive(False)
+        self.button_preferences.set_sensitive(True)
+
+        self.Command.set_editable(False)
         self.Recieved_Text.set_editable(False)
 
         # Serial Port Settings
@@ -129,9 +135,26 @@ class Serial_COM:
    
     def serial_connection(self):
         self.Serial = serial.Serial(port=self.Serial_Port, baudrate=self.Baud_Rate, parity=self.Parity, stopbits=self.Stop_bits, bytesize=self.Data_bits, timeout=1, flowcontrol=self.Flow_Control)
+        
+        self.button_connect.set_sensitive(False)
+        self.button_disconnect.set_sensitive(True)
+        self.button_preferences.set_sensitive(False)
+
+        self.Command.set_editable(True)
+        self.Recieved_Text.set_editable(False)
+
+        self.thread = threading.Thread(target=self.Serial_Receive_event, args=(self.Serial,))
+        self.thread.start()
    
     def serial_disconnect(self):
         self.Serial.close()
+        self.button_connect.set_sensitive(True)
+        self.button_disconnect.set_sensitive(False)
+        self.button_preferences.set_sensitive(True)
+
+        self.Command.set_editable(False)
+        self.Recieved_Text.set_editable(False)
+        self.thread.join()
 
     def on_preferences_clicked(self, button):
         self.COMSettings.show()
@@ -139,15 +162,29 @@ class Serial_COM:
 
     def load_Settings(self):
         self.Serial_Port_Box.set_entry_text([comport.device for comport in serial.tools.list_ports.comports()])
-
         self.Serial_Port_Box.set_active_id(self.Serial_Port)
+
+        self.Baud_Rate_Box.set_entry_text([str(i) for i in serial.Serial.BAUDRATES])
         self.Baud_Rate_Box.set_active_id(self.Baud_Rate)
+
+        self.Parity_Box.set_entry_text([str(i) for i in serial.Serial.PARITIES])
         self.Parity_Box.set_active_id(self.Parity)
+
+        self.Stop_bits_Box.set_entry_text([str(i) for i in serial.Serial.STOPBITS])
         self.Stop_bits_Box.set_active_id(self.Stop_bits)
+
+        self.Data_bits_Box.set_entry_text([str(i) for i in serial.Serial.DATABITS])
         self.Data_bits_Box.set_active_id(self.Data_bits)
+
+        self.Flow_Control_Box.set_entry_text([str(i) for i in serial.Serial.FLOWCONTROL])
         self.Flow_Control_Box.set_active_id(self.Flow_Control)
 
-        
+    def Serial_Receive_event(self, stream):
+        while self.button_disconnect.get_sensitive():
+            if stream.in_waiting > 0:
+                self.send_command()
+        return
+            
     def on_Save_Preferences_clicked(self, button):
         self.Serial_Port = self.Serial_Port_Box.get_active_text()
         self.Baud_Rate = int(self.Baud_Rate_Box.get_active_text())
@@ -175,89 +212,89 @@ class Serial_COM:
         self.Command.set_text("")
 
     def receive_command(self):
-        self.Recieved_Text.set_text(self.serial_read())
+        self.Recieved_Text.set_text(self.Recieved_Text.get_text() + self.remove_ansi_color(stream.decode()))
 
-    def setup_logging(module: str, log_dir: str):
-        filename = "./" + log_dir + "/" + module + ".log"
+    # def setup_logging(module: str, log_dir: str):
+    #     filename = "./" + log_dir + "/" + module + ".log"
 
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
-            print(f"Creating log directory on: ./{log_dir}")
+    #     if not os.path.exists(log_dir):
+    #         os.makedirs(log_dir)
+    #         print(f"Creating log directory on: ./{log_dir}")
 
-        if not os.path.exists(filename):
-            with open(filename, "w") as f:
-                f.write("")
-            print(f"Creating log file on: {filename}")
+    #     if not os.path.exists(filename):
+    #         with open(filename, "w") as f:
+    #             f.write("")
+    #         print(f"Creating log file on: {filename}")
 
-        logging.basicConfig(
-            filename=filename,
-            level=logging.DEBUG,
-            format="[%(asctime)s][%(levelname)s] > %(message)s",
-        )
+    #     logging.basicConfig(
+    #         filename=filename,
+    #         level=logging.DEBUG,
+    #         format="[%(asctime)s][%(levelname)s] > %(message)s",
+    #     )
 
-    def save_logs(line: str):
-        """
-        Saves logs by removing ANSI color codes from the input line and logs the line with an error level if it contains an error code, otherwise logs with an info level.
-        Parameters:
-            line (str): The input line to be logged.
-        Returns:
-            None
-        """
-        logline = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])").sub("", line)
+    # def save_logs(line: str):
+    #     """
+    #     Saves logs by removing ANSI color codes from the input line and logs the line with an error level if it contains an error code, otherwise logs with an info level.
+    #     Parameters:
+    #         line (str): The input line to be logged.
+    #     Returns:
+    #         None
+    #     """
+    #     logline = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])").sub("", line)
 
-        if ERROR_CODE in line:
-            logging.error(logline)
-        else:
-            logging.info(logline)
-
-
-    def serial_read(self) -> str:
-        return self.Serial.readline().decode()
+    #     if ERROR_CODE in line:
+    #         logging.error(logline)
+    #     else:
+    #         logging.info(logline)
 
 
-    def log_trace_cli():
-        cli_parser = argparse.ArgumentParser(
-            prog="log_trace.py",
-            description="Reads the floripasat-2 modules log through UART",
-        )
+    # def serial_read(self) -> str:
+    #     return self.Serial.readline().decode()
 
-        cli_parser.add_argument("PORT", type=str, help="serial port to listen to")
 
-        cli_parser.add_argument(
-            "-f",
-            "--log_file",
-            action="store",
-            default="module",
-            type=str,
-            help="sets the log file name",
-        )
+    # def log_trace_cli():
+    #     cli_parser = argparse.ArgumentParser(
+    #         prog="log_trace.py",
+    #         description="Reads the floripasat-2 modules log through UART",
+    #     )
 
-        cli_parser.add_argument(
-            "-d",
-            "--log_dir",
-            action="store",
-            default=LOG_DIR,
-            type=str,
-            help="sets the log directory",
-        )
+    #     cli_parser.add_argument("PORT", type=str, help="serial port to listen to")
 
-        args = cli_parser.parse_args()
+    #     cli_parser.add_argument(
+    #         "-f",
+    #         "--log_file",
+    #         action="store",
+    #         default="module",
+    #         type=str,
+    #         help="sets the log file name",
+    #     )
 
-        setup_logging(args.log_file, args.log_dir)
+    #     cli_parser.add_argument(
+    #         "-d",
+    #         "--log_dir",
+    #         action="store",
+    #         default=LOG_DIR,
+    #         type=str,
+    #         help="sets the log directory",
+    #     )
 
-        dev = serial_connection(args.PORT, BAUD)
+    #     args = vars(cli_parser.parse_args())
 
-        try:
-            while True:
-                log_line = self.serial_read()
-                print(log_line, end="")
-                save_logs(log_line)
+    #     self.setup_logging(args["log_file"], args["log_dir"])
 
-        except KeyboardInterrupt:
-            print("Keyboard interrupt detected. Exiting...")
+    #     dev = self.serial_connection(args["PORT"], BAUD)
 
-        finally:
-            dev.close()
+    #     try:
+    #         while True:
+    #             log_line = self.serial_read()
+    #             print(log_line, end="")
+    #             save_logs(log_line)
+
+    #     except KeyboardInterrupt:
+    #         print("Keyboard interrupt detected. Exiting...")
+
+    #     finally:
+    #         dev.close()
 # print([comport.device for comport in serial.tools.list_ports.comports()])
 
 
