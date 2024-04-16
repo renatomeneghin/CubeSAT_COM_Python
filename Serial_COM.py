@@ -42,6 +42,7 @@ _DIR_CONFIG_LINUX               = '.spacelab-Serial_COM'
 class Serial_COM:
     def __init__(self):
         self.builder = Gtk.builder()
+        
         # Importing .glade file
         if os.path.isfile(_UI_FILE_LOCAL):
             self.builder.add_from_file(_UI_FILE_LOCAL)
@@ -198,7 +199,7 @@ class Serial_COM:
         self.COMSettings.hide()
 
     def on_Command_key_press(self, widget, event):
-        if event.keyval == Gdk.KEY_Return or event.keyval == Gdk.KEY_KP_Enter: 
+        if event.keyval == Gtk.KEY_Return or event.keyval == Gtk.KEY_KP_Enter: 
             self.send_command()
 
     def on_Button_Send_clicked(self, button):
@@ -212,7 +213,7 @@ class Serial_COM:
         self.Command.set_text("")
 
     def receive_command(self):
-        self.Recieved_Text.set_text(self.Recieved_Text.get_text() + self.remove_ansi_color(stream.decode()))
+        self.Recieved_Text.set_text(self.Recieved_Text.get_text() + self.remove_ansi_color(self.Serial.readline().decode()))
 
     # def setup_logging(module: str, log_dir: str):
     #     filename = "./" + log_dir + "/" + module + ".log"
@@ -298,3 +299,9 @@ class Serial_COM:
 # print([comport.device for comport in serial.tools.list_ports.comports()])
 
 
+def main():
+    prog = Serial_COM()
+    Gtk.main()
+
+if __name__ == "__main__":
+    main()
