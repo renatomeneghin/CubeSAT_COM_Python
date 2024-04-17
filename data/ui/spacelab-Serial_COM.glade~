@@ -56,13 +56,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolButton" id="toolbutton_about">
+              <object class="GtkToolButton" id="toolbutton_clean">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="tooltip-text" translatable="yes" comments="Information about the software">About</property>
-                <property name="label" translatable="yes">Info</property>
+                <property name="tooltip-text" translatable="yes" comments="Information about the software">Clean</property>
+                <property name="label" translatable="yes">Clean</property>
                 <property name="use-underline">True</property>
-                <property name="stock-id">gtk-about</property>
+                <property name="stock-id">gtk-media-rewind</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -138,7 +138,7 @@
                     </child>
                     <child>
                       <!-- n-columns=2 n-rows=6 -->
-                      <object class="GtkGrid" id="EPS_Data1">
+                      <object class="GtkGrid" id="EPS_Data">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="row-spacing">4</property>
@@ -327,7 +327,7 @@
                     </child>
                     <child>
                       <!-- n-columns=2 n-rows=6 -->
-                      <object class="GtkGrid" id="OBDH_Data1">
+                      <object class="GtkGrid" id="OBDH_Data">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="row-spacing">5</property>
@@ -515,7 +515,7 @@
                     </child>
                     <child>
                       <!-- n-columns=2 n-rows=6 -->
-                      <object class="GtkGrid" id="TTC_Data1">
+                      <object class="GtkGrid" id="TTC_Data">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="row-spacing">5</property>
@@ -703,7 +703,7 @@
                     </child>
                     <child>
                       <!-- n-columns=2 n-rows=6 -->
-                      <object class="GtkGrid" id="PayLoad_Data1">
+                      <object class="GtkGrid" id="PayLoad_Data">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="row-spacing">5</property>
@@ -929,8 +929,8 @@
           <object class="GtkTextView" id="Recieved_Text">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
-            <property name="margin-top">195</property>
             <property name="editable">False</property>
+            <property name="bottom-margin">150</property>
             <property name="accepts-tab">False</property>
           </object>
           <packing>
@@ -1003,7 +1003,7 @@
           </packing>
         </child>
         <child>
-          <!-- n-columns=2 n-rows=6 -->
+          <!-- n-columns=2 n-rows=5 -->
           <object class="GtkGrid">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
@@ -1040,16 +1040,6 @@
               <packing>
                 <property name="left-attach">1</property>
                 <property name="top-attach">4</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkComboBoxText" id="Flow_Control">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-              </object>
-              <packing>
-                <property name="left-attach">1</property>
-                <property name="top-attach">5</property>
               </packing>
             </child>
             <child>
@@ -1094,17 +1084,6 @@
               <packing>
                 <property name="left-attach">0</property>
                 <property name="top-attach">4</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes">Flow Control:</property>
-              </object>
-              <packing>
-                <property name="left-attach">0</property>
-                <property name="top-attach">5</property>
               </packing>
             </child>
             <child>

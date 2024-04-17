@@ -212,21 +212,23 @@ class Serial_COM:
 
     def on_Command_key_press(self, widget, event):
         pass
-        #if event.keyval == Gtk.KEY_Return or event.keyval == Gtk.KEY_KP_Enter: 
+        # if event.keyval == Gtk.KEY_Return or event.keyval == Gtk.KEY_KP_Enter: 
         #    self.send_command()
 
     def on_Button_Send_clicked(self, button):
         self.send_command()
 
     def on_toolbutton_clean_clicked(self, button):
-        self.Recieved_Text.set_text("")
+        self.Recieved_Text.set_buffer("")
 
     def send_command(self):
         self.Serial.write(self.Command.get_text().encode())
         self.Command.set_text("")
 
     def receive_command(self):
-        self.Recieved_Text.set_text(self.Recieved_Text.get_text() + self.remove_ansi_color(self.Serial.readline().decode()))
+        received_text = self.Recieved_Text.get_buffer()
+        received_text.insert(received_text.get_end_iter(), self.Serial.readline().decode() + "\n",-1)
+        self.Recieved_Text.set_buffer(received_text)
 
     # def setup_logging(module: str, log_dir: str):
     #     filename = "./" + log_dir + "/" + module + ".log"
@@ -260,11 +262,6 @@ class Serial_COM:
     #         logging.error(logline)
     #     else:
     #         logging.info(logline)
-
-
-    # def serial_read(self) -> str:
-    #     return self.Serial.readline().decode()
-
 
     # def log_trace_cli():
     #     cli_parser = argparse.ArgumentParser(
