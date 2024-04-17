@@ -2,7 +2,7 @@
 <!-- Generated with glade 3.40.0 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
-  <object class="GtkApplicationWindow" id="CubeSAT_COM">
+  <object class="GtkWindow" id="CubeSAT_COM">
     <property name="can-focus">False</property>
     <child>
       <object class="GtkBox">
@@ -21,7 +21,6 @@
                 <property name="label" translatable="yes">Connect</property>
                 <property name="use-underline">True</property>
                 <property name="stock-id">gtk-connect</property>
-                <signal name="clicked" handler="on_button_connect_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -36,7 +35,6 @@
                 <property name="label" translatable="yes">Disconnect</property>
                 <property name="use-underline">True</property>
                 <property name="stock-id">gtk-disconnect</property>
-                <signal name="clicked" handler="on_button_disconnect_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -51,7 +49,6 @@
                 <property name="label" translatable="yes">Preferences</property>
                 <property name="use-underline">True</property>
                 <property name="stock-id">gtk-properties</property>
-                <signal name="clicked" handler="on_button_preferences_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -66,7 +63,6 @@
                 <property name="label" translatable="yes">Info</property>
                 <property name="use-underline">True</property>
                 <property name="stock-id">gtk-about</property>
-                <signal name="clicked" handler="on_toolbutton_about_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -142,7 +138,7 @@
                     </child>
                     <child>
                       <!-- n-columns=2 n-rows=6 -->
-                      <object class="GtkGrid" id="EPS_Data">
+                      <object class="GtkGrid" id="EPS_Data1">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="row-spacing">4</property>
@@ -217,7 +213,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_1V">
+                          <object class="GtkTextView" id="Bat_1V4">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -227,7 +223,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_2V">
+                          <object class="GtkTextView" id="Bat_2V4">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -237,7 +233,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_I">
+                          <object class="GtkTextView" id="Bat_I4">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -247,7 +243,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_Iavg">
+                          <object class="GtkTextView" id="Bat_Iavg4">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -257,7 +253,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_Iacc">
+                          <object class="GtkTextView" id="Bat_Iacc4">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -267,7 +263,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Protection_register">
+                          <object class="GtkTextView" id="Protection_register4">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -331,7 +327,7 @@
                     </child>
                     <child>
                       <!-- n-columns=2 n-rows=6 -->
-                      <object class="GtkGrid" id="OBDH_Data">
+                      <object class="GtkGrid" id="OBDH_Data1">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="row-spacing">5</property>
@@ -405,7 +401,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_1V1">
+                          <object class="GtkTextView" id="Bat_1V5">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -415,7 +411,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_2V1">
+                          <object class="GtkTextView" id="Bat_2V5">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -425,7 +421,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_I1">
+                          <object class="GtkTextView" id="Bat_I5">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -435,7 +431,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_Iavg1">
+                          <object class="GtkTextView" id="Bat_Iavg5">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -445,7 +441,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_Iacc1">
+                          <object class="GtkTextView" id="Bat_Iacc5">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -455,7 +451,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Protection_register1">
+                          <object class="GtkTextView" id="Protection_register5">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -519,7 +515,7 @@
                     </child>
                     <child>
                       <!-- n-columns=2 n-rows=6 -->
-                      <object class="GtkGrid" id="TTC_Data">
+                      <object class="GtkGrid" id="TTC_Data1">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="row-spacing">5</property>
@@ -593,7 +589,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_1V2">
+                          <object class="GtkTextView" id="Bat_1V6">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -603,7 +599,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_2V2">
+                          <object class="GtkTextView" id="Bat_2V6">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -613,7 +609,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_I2">
+                          <object class="GtkTextView" id="Bat_I6">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -623,7 +619,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_Iavg2">
+                          <object class="GtkTextView" id="Bat_Iavg6">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -633,7 +629,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_Iacc2">
+                          <object class="GtkTextView" id="Bat_Iacc6">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -643,7 +639,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Protection_register2">
+                          <object class="GtkTextView" id="Protection_register6">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -707,7 +703,7 @@
                     </child>
                     <child>
                       <!-- n-columns=2 n-rows=6 -->
-                      <object class="GtkGrid" id="PayLoad_Data">
+                      <object class="GtkGrid" id="PayLoad_Data1">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="row-spacing">5</property>
@@ -781,7 +777,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_1V3">
+                          <object class="GtkTextView" id="Bat_1V7">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -791,7 +787,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_2V3">
+                          <object class="GtkTextView" id="Bat_2V7">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -801,7 +797,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_I3">
+                          <object class="GtkTextView" id="Bat_I7">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -811,7 +807,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_Iavg3">
+                          <object class="GtkTextView" id="Bat_Iavg7">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -821,7 +817,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Bat_Iacc3">
+                          <object class="GtkTextView" id="Bat_Iacc7">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -831,7 +827,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="Protection_register3">
+                          <object class="GtkTextView" id="Protection_register7">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                           </object>
@@ -895,7 +891,6 @@
                     <property name="can-focus">True</property>
                     <property name="width-chars">83</property>
                     <property name="input-purpose">terminal</property>
-                    <signal name="key-press-event" handler="on_Command_key_press_event" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -909,7 +904,6 @@
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="receives-default">True</property>
-                    <signal name="clicked" handler="on_Button_Send_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -979,7 +973,6 @@
                 <property name="receives-default">True</property>
                 <property name="image">image1</property>
                 <property name="always-show-image">True</property>
-                <signal name="activate" handler="on_Discard_Options_activate" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -995,7 +988,6 @@
                 <property name="receives-default">True</property>
                 <property name="image">Save</property>
                 <property name="always-show-image">True</property>
-                <signal name="activate" handler="on_Save_Preferences_activate" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>

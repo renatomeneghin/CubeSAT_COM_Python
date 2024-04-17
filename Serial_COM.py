@@ -11,6 +11,8 @@ import logging
 import os
 import threading
 
+
+
 ERROR_CODE = "\033[1;31m"
 BAUD = 115200
 LOG_DIR = "logs"
@@ -18,13 +20,13 @@ LOG_DIR = "logs"
 #here's for importing the other files of spacelab-transmitter that are missing or not ready
 
 #CONSTANTS
-_UI_FILE_LOCAL                  = os.path.abspath(os.path.dirname(__file__)) + '/data/ui/spacelab-Serial_COM.glade'
+_UI_FILE_LOCAL                  = os.path.abspath(os.path.dirname(__name__)) + '/data/ui/spacelab-Serial_COM.glade'
 _UI_FILE_LINUX_SYSTEM           = '/usr/share/spacelab-Serial_COM/spacelab-Serial_COM.glade'
 
-_ICON_FILE_LOCAL                = os.path.abspath(os.path.dirname(__file__)) + '/data/img/spacelab_transmitter_256x256.png'
+_ICON_FILE_LOCAL                = os.path.abspath(os.path.dirname(__name__)) + '/data/img/spacelab_transmitter_256x256.png'
 # _ICON_FILE_LINUX_SYSTEM         = '/usr/share/icons/spacelab_transmitter_256x256.png'
 
-_LOGO_FILE_LOCAL                = os.path.abspath(os.path.dirname(__file__)) + '/data/img/spacelab-logo-full-400x200.png'
+_LOGO_FILE_LOCAL                = os.path.abspath(os.path.dirname(__name__)) + '/data/img/spacelab-logo-full-400x200.png'
 # _LOGO_FILE_LINUX_SYSTEM         = '/usr/share/spacelab_transmitter/spacelab-logo-full-400x200.png'
 
 _DIR_CONFIG_LINUX               = '.spacelab-Serial_COM'
@@ -41,7 +43,7 @@ _DIR_CONFIG_LINUX               = '.spacelab-Serial_COM'
 
 class Serial_COM:
     def __init__(self):
-        self.builder = Gtk.builder()
+        self.builder = Gtk.Builder()
         
         # Importing .glade file
         if os.path.isfile(_UI_FILE_LOCAL):
@@ -55,6 +57,8 @@ class Serial_COM:
 
         self._load_preferences()
 
+        self.run()
+
     def _build_widgets(self):
 
         # Main Window
@@ -64,6 +68,8 @@ class Serial_COM:
         else:
             pass
             # self.window.set_icon_from_file(_ICON_FILE_LINUX_SYSTEM)
+        self.window.set_title("CubeSAT_COM")
+
         self.window.set_wmclass(self.window.get_title(), self.window.get_title())
         self.window.connect("destroy", Gtk.main_quit)
 
@@ -91,6 +97,7 @@ class Serial_COM:
 
         # Settings Window
         self.COMSettings = self.builder.get_object("COMSettings")
+        self.COMSettings.set_title("COMSettings")
 
         # Settings Window Buttons
         self.Save_Preferences = self.builder.get_object("Save_Preferences")
@@ -106,6 +113,7 @@ class Serial_COM:
 
         self.Command.set_editable(False)
         self.Recieved_Text.set_editable(False)
+        self.Button_Send.set_sensitive(False)
 
         # Serial Port Settings
         self.Serial_Port_Box = self.builder.get_object("Serial_Port")
@@ -120,7 +128,7 @@ class Serial_COM:
         self.Parity = serial.PARITY_NONE
         self.Stop_bits = serial.STOPBITS_ONE
         self.Data_bits = serial.EIGHTBITS
-        self.Flow_Control = serial.FLOWCONTROL_NONE
+        #self.Flow_Control = serial.FLOWCONTROL_NONE
 
 
     def remove_ansi_color(string: str) -> str:
@@ -134,73 +142,78 @@ class Serial_COM:
     def onDestroy(self, *args):
         Gtk.main_quit()    
    
-    def serial_connection(self):
-        self.Serial = serial.Serial(port=self.Serial_Port, baudrate=self.Baud_Rate, parity=self.Parity, stopbits=self.Stop_bits, bytesize=self.Data_bits, timeout=1, flowcontrol=self.Flow_Control)
-        
+    def serial_connection(self, widget):
+        self.Serial = serial.Serial(port=self.Serial_Port, baudrate=self.Baud_Rate, parity=self.Parity, stopbits=self.Stop_bits, bytesize=self.Data_bits, timeout=1)#, flowcontrol=self.Flow_Control)
+
         self.button_connect.set_sensitive(False)
         self.button_disconnect.set_sensitive(True)
         self.button_preferences.set_sensitive(False)
 
         self.Command.set_editable(True)
-        self.Recieved_Text.set_editable(False)
+        self.Button_Send.set_sensitive(True)
+        self.Recieved_Text.set_editable(True)
 
         self.thread = threading.Thread(target=self.Serial_Receive_event, args=(self.Serial,))
         self.thread.start()
    
-    def serial_disconnect(self):
-        self.Serial.close()
+    def serial_disconnect(self, widget):
         self.button_connect.set_sensitive(True)
         self.button_disconnect.set_sensitive(False)
         self.button_preferences.set_sensitive(True)
 
         self.Command.set_editable(False)
+        self.Button_Send.set_sensitive(False)
         self.Recieved_Text.set_editable(False)
-        self.thread.join()
 
     def on_preferences_clicked(self, button):
         self.COMSettings.show()
         self.load_Settings()
 
     def load_Settings(self):
-        self.Serial_Port_Box.set_entry_text([comport.device for comport in serial.tools.list_ports.comports()])
+        for comport in serial.tools.list_ports.comports(): self.Serial_Port_Box.append_text(str(comport.device))
         self.Serial_Port_Box.set_active_id(self.Serial_Port)
 
-        self.Baud_Rate_Box.set_entry_text([str(i) for i in serial.Serial.BAUDRATES])
-        self.Baud_Rate_Box.set_active_id(self.Baud_Rate)
+        for baud in [9600, 19200, 38400, 57600, 115200]: self.Baud_Rate_Box.append_text(str(baud))
+        self.Baud_Rate_Box.set_active_id(str(self.Baud_Rate))
 
-        self.Parity_Box.set_entry_text([str(i) for i in serial.Serial.PARITIES])
-        self.Parity_Box.set_active_id(self.Parity)
+        for Parity in [serial.PARITY_NONE, serial.PARITY_EVEN, serial.PARITY_ODD, serial.PARITY_MARK, serial.PARITY_SPACE]:
+            self.Parity_Box.append_text(str(Parity))
+        self.Parity_Box.set_active_id(str(self.Parity))
 
-        self.Stop_bits_Box.set_entry_text([str(i) for i in serial.Serial.STOPBITS])
-        self.Stop_bits_Box.set_active_id(self.Stop_bits)
+        for stopbits in [serial.STOPBITS_ONE , serial.STOPBITS_ONE_POINT_FIVE , serial.STOPBITS_TWO]:
+            self.Stop_bits_Box.append_text(str(stopbits))
+        self.Stop_bits_Box.set_active_id(str(self.Stop_bits))
 
-        self.Data_bits_Box.set_entry_text([str(i) for i in serial.Serial.DATABITS])
-        self.Data_bits_Box.set_active_id(self.Data_bits)
+        for databits in [serial.FIVEBITS , serial.SIXBITS , serial.SEVENBITS , serial.EIGHTBITS]:
+            self.Data_bits_Box.append_text(str(databits))
+        self.Data_bits_Box.set_active_id(str(self.Data_bits))
 
-        self.Flow_Control_Box.set_entry_text([str(i) for i in serial.Serial.FLOWCONTROL])
-        self.Flow_Control_Box.set_active_id(self.Flow_Control)
+        #self.Flow_Control_Box.set_entry_text([str(i) for i in serial.Serial.FLOWCONTROL])
+        #self.Flow_Control_Box.set_active_id(self.Flow_Control)
 
     def Serial_Receive_event(self, stream):
-        while self.button_disconnect.get_sensitive():
+        while self.Recieved_Text.get_sensitive():
             if stream.in_waiting > 0:
-                self.send_command()
+                self.receive_command()
+        stream.close()
         return
             
     def on_Save_Preferences_clicked(self, button):
-        self.Serial_Port = self.Serial_Port_Box.get_active_text()
-        self.Baud_Rate = int(self.Baud_Rate_Box.get_active_text())
-        self.Parity = self.Parity_Box.get_active_text()
-        self.Stop_bits = int(self.Stop_bits_Box.get_active_text())
-        self.Data_bits = int(self.Data_bits_Box.get_active_text())
-        self.Flow_Control = self.Flow_Control_Box.get_active_text()
+        self.Serial_Port = "/dev/ttyUSB0"
+        self.Baud_Rate = 115200#int(self.Baud_Rate_Box.get_active_text())
+        self.Parity = serial.PARITY_NONE#self.Parity_Box.get_active_text()
+        self.Stop_bits = serial.STOPBITS_ONE#int(self.Stop_bits_Box.get_active_text())
+        self.Data_bits = serial.EIGHTBITS#int(self.Data_bits_Box.get_active_text())
+        #self.Flow_Control = #self.Flow_Control_Box.get_active_text()
         self.COMSettings.hide()
 
     def on_Discard_Options_clicked(self, button):
         self.COMSettings.hide()
 
     def on_Command_key_press(self, widget, event):
-        if event.keyval == Gtk.KEY_Return or event.keyval == Gtk.KEY_KP_Enter: 
-            self.send_command()
+        pass
+        #if event.keyval == Gtk.KEY_Return or event.keyval == Gtk.KEY_KP_Enter: 
+        #    self.send_command()
 
     def on_Button_Send_clicked(self, button):
         self.send_command()
@@ -301,7 +314,6 @@ class Serial_COM:
 
 def main():
     prog = Serial_COM()
-    Gtk.main()
-
+    
 if __name__ == "__main__":
     main()
