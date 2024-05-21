@@ -217,6 +217,7 @@ class Serial_COM:
 
     def on_Button_Send_clicked(self, button):
         self.send_command()
+        print("To do...")
 
     def on_toolbutton_clean_clicked(self, button):
         self.Recieved_Text.set_buffer("")
