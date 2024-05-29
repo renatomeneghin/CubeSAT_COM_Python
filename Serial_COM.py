@@ -24,11 +24,14 @@ LOG_DIR = "logs"
 _UI_FILE_LOCAL                  = os.path.abspath(os.path.dirname(__name__)) + '/data/ui/spacelab-Serial_COM.glade'
 _UI_FILE_LINUX_SYSTEM           = '/usr/share/spacelab-Serial_COM/spacelab-Serial_COM.glade'
 
+_CURRENT_DIR_LOCAL              = os.path.abspath(os.path.dirname(__name__))
+
 _ICON_FILE_LOCAL                = os.path.abspath(os.path.dirname(__name__)) + '/data/img/spacelab_transmitter_256x256.png'
 
 _LOGO_FILE_LOCAL                = os.path.abspath(os.path.dirname(__name__)) + '/data/img/spacelab-logo-full-400x200.png'
 
 _DIR_CONFIG_LINUX               = '.spacelab-Serial_COM'
+
 class Serial_COM:
     def __init__(self):
         self.builder = Gtk.Builder()
@@ -39,14 +42,7 @@ class Serial_COM:
         else:
             self.builder.add_from_file(_UI_FILE_LINUX_SYSTEM)
 
-        self.builder.connect_signals(self)
-
-        self._build_widgets()
-
-        self._load_preferences()
-
         self.init_Time = datetime.now()
-
         self.Serial_config = {
             "Serial_Port" : [None, "/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3"],
             "Baud_Rate" : [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400],
@@ -54,6 +50,12 @@ class Serial_COM:
             "Stop_bits" : [serial.STOPBITS_ONE , serial.STOPBITS_ONE_POINT_FIVE , serial.STOPBITS_TWO],
             "Data_bits" : [serial.FIVEBITS , serial.SIXBITS , serial.SEVENBITS , serial.EIGHTBITS]
         }
+
+        self.builder.connect_signals(self)
+
+        self._build_widgets()
+
+        self._load_preferences()
 
         self.run()
 
@@ -86,7 +88,7 @@ class Serial_COM:
 
         # Serial Commands
         self.Command = self.builder.get_object("Command")
-        self.Command.connect("key-press-event", self.on_Command_key_press)
+        self.Command.connect("activate", self.on_Command_activate)
 
         self.Button_Send = self.builder.get_object("Button_Send")
         self.Button_Send.connect("clicked", self.on_Button_Send_clicked)
@@ -105,6 +107,10 @@ class Serial_COM:
         self.Log_Dir = self.builder.get_object("Log_DIR")
         self.Module = self.builder.get_object("Module")
         self.Log_Record = self.builder.get_object("Record_Switch")
+
+        self.Log_Dir.set_current_folder(_CURRENT_DIR_LOCAL + "/.Logs")
+        self.Log_Dir.set_current_name("/.Logs")
+        self.Module.set_active_id("OBDH")
 
         # Settings Window
         self.COMSettings = self.builder.get_object("COMSettings")
@@ -138,7 +144,8 @@ class Serial_COM:
         self.Serial_Port_Box1.set_active_id(None)
 
         for baud in self.Serial_config["Baud_Rate"]: self.Baud_Rate_Box1.append_text(str(baud))
-        self.Baud_Rate_Box1.set_active_id(115200)
+        #print(self.Baud_Rate_Box1.get_has_entry())
+        #self.Baud_Rate_Box1.set_entry(str(115200))
 
         self.Serial_Port = None
         self.Baud_Rate = 115200
@@ -146,10 +153,7 @@ class Serial_COM:
         self.Stop_bits = serial.STOPBITS_ONE
         self.Data_bits = serial.EIGHTBITS
 
-        # Log Settings
-        # self.Log_Dir_Box.
-        # self.Module_Box = self.builder.get_object("Module")
-        # self.Log_Record_Box = self.builder.get_object("Record_Switch")
+        self.setup_logging()
 
 
     def remove_ansi_color(string: str) -> str:
@@ -226,10 +230,8 @@ class Serial_COM:
     def on_Discard_Options_clicked(self, button):
         self.COMSettings.hide()
 
-    def on_Command_key_press(self, widget, event):
-        pass
-        # if event.keyval == Gtk.KEY_Return or event.keyval == Gtk.KEY_KP_Enter: 
-        #    self.send_command()
+    def on_Command_activate(self, widget, event):
+        self.send_command()
 
     def on_Button_Send_clicked(self, button):
         self.send_command()
@@ -246,26 +248,28 @@ class Serial_COM:
         received_text = self.Recieved_Text.get_buffer()
         received_text.insert(received_text.get_end_iter(), self.Serial.readline().decode() + "\n",-1)
         self.Recieved_Text.set_buffer(received_text)
+        if self.Log_Record.get_active(): self.save_logs(self.Serial.readline().decode())
+        
 
-    # def setup_logging(module: str, log_dir: str):
-    #     filename = "./" + log_dir + "/" + module + ".log"
+    def setup_logging(self):
+        filename = self.Log_Dir.get_current_folder() + "/" + self.Module.get_active_text() + "_" + str(self.init_Time) + ".log"
 
-    #     if not os.path.exists(log_dir):
-    #         os.makedirs(log_dir)
-    #         print(f"Creating log directory on: ./{log_dir}")
+        if not os.path.exists(self.Log_Dir.get_current_folder()):
+            os.makedirs(str(self.Log_Dir.get_current_folder()))
+            print(f"Creating log directory on: ./{self.Log_Dir}")
 
-    #     if not os.path.exists(filename):
-    #         with open(filename, "w") as f:
-    #             f.write("")
-    #         print(f"Creating log file on: {filename}")
+        if not os.path.exists(filename):
+            with open(filename, "w") as f:
+                f.write("")
+            print(f"Creating log file on: {filename}")
 
-    #     logging.basicConfig(
-    #         filename=filename,
-    #         level=logging.DEBUG,
-    #         format="[%(asctime)s][%(levelname)s] > %(message)s",
-    #     )
+        logging.basicConfig(
+            filename=filename,
+            level=logging.DEBUG,
+            format="[%(asctime)s][%(levelname)s] > %(message)s",
+        )
 
-    def save_logs(line: str):
+    def save_logs(self, line: str):
         """
         Saves logs by removing ANSI color codes from the input line and logs the line with an error level if it contains an error code, otherwise logs with an info level.
         Parameters:
@@ -273,58 +277,12 @@ class Serial_COM:
         Returns:
             None
         """
-        logline = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])").sub("", line)
-
+        logline = self.remove_ansi_color (line)
+        
         if ERROR_CODE in line:
             logging.error(logline)
         else:
             logging.info(logline)
-
-    # def log_trace_cli():
-    #     cli_parser = argparse.ArgumentParser(
-    #         prog="log_trace.py",
-    #         description="Reads the floripasat-2 modules log through UART",
-    #     )
-
-    #     cli_parser.add_argument("PORT", type=str, help="serial port to listen to")
-
-    #     cli_parser.add_argument(
-    #         "-f",
-    #         "--log_file",
-    #         action="store",
-    #         default="module",
-    #         type=str,
-    #         help="sets the log file name",
-    #     )
-
-    #     cli_parser.add_argument(
-    #         "-d",
-    #         "--log_dir",
-    #         action="store",
-    #         default=LOG_DIR,
-    #         type=str,
-    #         help="sets the log directory",
-    #     )
-
-    #     args = vars(cli_parser.parse_args())
-
-    #     self.setup_logging(args["log_file"], args["log_dir"])
-
-    #     dev = self.serial_connection(args["PORT"], BAUD)
-
-    #     try:
-    #         while True:
-    #             log_line = self.serial_read()
-    #             print(log_line, end="")
-    #             save_logs(log_line)
-
-    #     except KeyboardInterrupt:
-    #         print("Keyboard interrupt detected. Exiting...")
-
-    #     finally:
-    #         dev.close()
-# print([comport.device for comport in serial.tools.list_ports.comports()])
-
 
 def main():
     prog = Serial_COM()

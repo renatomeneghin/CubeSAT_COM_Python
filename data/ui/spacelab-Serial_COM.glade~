@@ -235,6 +235,7 @@
                                   <object class="GtkFileChooserButton" id="Log_DIR">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
+                                    <property name="action">select-folder</property>
                                     <property name="title" translatable="yes"/>
                                   </object>
                                   <packing>
@@ -283,11 +284,10 @@
                                 <property name="spacing">6</property>
                                 <property name="homogeneous">True</property>
                                 <child>
-                                  <object class="GtkButton" id="Print_Button">
-                                    <property name="label" translatable="yes">Print</property>
+                                  <object class="GtkLabel">
                                     <property name="visible">True</property>
-                                    <property name="can-focus">True</property>
-                                    <property name="receives-default">True</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="label" translatable="yes">Record:</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -296,11 +296,11 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="Reccord_Button">
-                                    <property name="label" translatable="yes">Record</property>
+                                  <object class="GtkSwitch" id="Record_Switch">
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
-                                    <property name="receives-default">True</property>
+                                    <property name="halign">center</property>
+                                    <property name="valign">start</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -372,6 +372,7 @@
                       <object class="GtkTextView" id="Received_Text">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
+                        <property name="margin-bottom">163</property>
                       </object>
                       <packing>
                         <property name="expand">True</property>
