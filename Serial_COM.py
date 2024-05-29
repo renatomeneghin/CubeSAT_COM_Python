@@ -10,6 +10,7 @@ import re
 import logging
 import os
 import threading
+from datetime import datetime
 
 
 
@@ -24,23 +25,10 @@ _UI_FILE_LOCAL                  = os.path.abspath(os.path.dirname(__name__)) + '
 _UI_FILE_LINUX_SYSTEM           = '/usr/share/spacelab-Serial_COM/spacelab-Serial_COM.glade'
 
 _ICON_FILE_LOCAL                = os.path.abspath(os.path.dirname(__name__)) + '/data/img/spacelab_transmitter_256x256.png'
-# _ICON_FILE_LINUX_SYSTEM         = '/usr/share/icons/spacelab_transmitter_256x256.png'
 
 _LOGO_FILE_LOCAL                = os.path.abspath(os.path.dirname(__name__)) + '/data/img/spacelab-logo-full-400x200.png'
-# _LOGO_FILE_LINUX_SYSTEM         = '/usr/share/spacelab_transmitter/spacelab-logo-full-400x200.png'
 
 _DIR_CONFIG_LINUX               = '.spacelab-Serial_COM'
-# _DIR_CONFIG_WINDOWS             = 'spacelab-Serial_COM'
-
-# _SAT_JSON_FLORIPASAT_1_LOCAL    = os.path.abspath(os.path.dirname(__file__)) + '/data/satellites/floripasat-1.json'
-# _SAT_JSON_FLORIPASAT_1_SYSTEM   = '/usr/share/spacelab_transmitter/floripasat-1.json'
-# _SAT_JSON_GOLDS_UFSC_LOCAL    = os.path.abspath(os.path.dirname(__file__)) + '/data/satellites/GOLDS_UFSC.json'
-# _SAT_JSON_GOLDS_UFSC_SYSTEM   = '/usr/share/spacelab_transmitter/GOLDS_UFSC.json'
-
-# _DEFAULT_CALLSIGN               = 'PP5UF'
-# _DEFAULT_LOCATION               = 'Florianópolis'
-# _DEFAULT_COUNTRY                = 'Brazil'
-
 class Serial_COM:
     def __init__(self):
         self.builder = Gtk.Builder()
@@ -56,6 +44,16 @@ class Serial_COM:
         self._build_widgets()
 
         self._load_preferences()
+
+        self.init_Time = datetime.now()
+
+        self.Serial_config = {
+            "Serial_Port" : [None, "/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3"],
+            "Baud_Rate" : [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400],
+            "Parity" : [serial.PARITY_NONE, serial.PARITY_EVEN, serial.PARITY_ODD, serial.PARITY_MARK, serial.PARITY_SPACE],
+            "Stop_bits" : [serial.STOPBITS_ONE , serial.STOPBITS_ONE_POINT_FIVE , serial.STOPBITS_TWO],
+            "Data_bits" : [serial.FIVEBITS , serial.SIXBITS , serial.SEVENBITS , serial.EIGHTBITS]
+        }
 
         self.run()
 
@@ -93,7 +91,20 @@ class Serial_COM:
         self.Button_Send = self.builder.get_object("Button_Send")
         self.Button_Send.connect("clicked", self.on_Button_Send_clicked)
 
-        self.Recieved_Text = self.builder.get_object("Recieved_Text")
+        self.Recieved_Text = self.builder.get_object("Received_Text")
+
+        self.Text_Commands = self.builder.get_object("Text_Commands")
+
+        # Serial Port Settings
+        self.Serial_Port_Box1 = self.builder.get_object("Serial_Port1")
+        self.Baud_Rate_Box1 = self.builder.get_object("Baud_Rate1")
+        self.Send_option = self.builder.get_object("Send_Switch")
+
+        # Log Settings
+
+        self.Log_Dir = self.builder.get_object("Log_DIR")
+        self.Module = self.builder.get_object("Module")
+        self.Log_Record = self.builder.get_object("Record_Switch")
 
         # Settings Window
         self.COMSettings = self.builder.get_object("COMSettings")
@@ -123,12 +134,22 @@ class Serial_COM:
         self.Data_bits_Box = self.builder.get_object("Data_bits")
         self.Flow_Control_Box = self.builder.get_object("Flow_Control")
 
+        for comport in serial.tools.list_ports.comports(): self.Serial_Port_Box1.append_text(str(comport.device))
+        self.Serial_Port_Box1.set_active_id(None)
+
+        for baud in self.Serial_config["Baud_Rate"]: self.Baud_Rate_Box1.append_text(str(baud))
+        self.Baud_Rate_Box1.set_active_id(115200)
+
         self.Serial_Port = None
         self.Baud_Rate = 115200
         self.Parity = serial.PARITY_NONE
         self.Stop_bits = serial.STOPBITS_ONE
         self.Data_bits = serial.EIGHTBITS
-        #self.Flow_Control = serial.FLOWCONTROL_NONE
+
+        # Log Settings
+        # self.Log_Dir_Box.
+        # self.Module_Box = self.builder.get_object("Module")
+        # self.Log_Record_Box = self.builder.get_object("Record_Switch")
 
 
     def remove_ansi_color(string: str) -> str:
@@ -173,23 +194,17 @@ class Serial_COM:
         for comport in serial.tools.list_ports.comports(): self.Serial_Port_Box.append_text(str(comport.device))
         self.Serial_Port_Box.set_active_id(self.Serial_Port)
 
-        for baud in [9600, 19200, 38400, 57600, 115200]: self.Baud_Rate_Box.append_text(str(baud))
+        for baud in self.Serial_config["Baud_Rate"]: self.Baud_Rate_Box.append_text(str(baud))
         self.Baud_Rate_Box.set_active_id(str(self.Baud_Rate))
 
-        for Parity in [serial.PARITY_NONE, serial.PARITY_EVEN, serial.PARITY_ODD, serial.PARITY_MARK, serial.PARITY_SPACE]:
-            self.Parity_Box.append_text(str(Parity))
+        for Parity in self.Serial_config["Parity"]:  self.Parity_Box.append_text(str(Parity))
         self.Parity_Box.set_active_id(str(self.Parity))
 
-        for stopbits in [serial.STOPBITS_ONE , serial.STOPBITS_ONE_POINT_FIVE , serial.STOPBITS_TWO]:
-            self.Stop_bits_Box.append_text(str(stopbits))
+        for stopbits in self.Serial_config["Stop_bits"]: self.Stop_bits_Box.append_text(str(stopbits))
         self.Stop_bits_Box.set_active_id(str(self.Stop_bits))
 
-        for databits in [serial.FIVEBITS , serial.SIXBITS , serial.SEVENBITS , serial.EIGHTBITS]:
-            self.Data_bits_Box.append_text(str(databits))
+        for databits in self.Serial_config["Data_bits"]: self.Data_bits_Box.append_text(str(databits))
         self.Data_bits_Box.set_active_id(str(self.Data_bits))
-
-        #self.Flow_Control_Box.set_entry_text([str(i) for i in serial.Serial.FLOWCONTROL])
-        #self.Flow_Control_Box.set_active_id(self.Flow_Control)
 
     def Serial_Receive_event(self, stream):
         while self.Recieved_Text.get_sensitive():
@@ -200,11 +215,12 @@ class Serial_COM:
             
     def on_Save_Preferences_clicked(self, button):
         self.Serial_Port = "/dev/ttyUSB0"
-        self.Baud_Rate = 115200#int(self.Baud_Rate_Box.get_active_text())
-        self.Parity = serial.PARITY_NONE#self.Parity_Box.get_active_text()
-        self.Stop_bits = serial.STOPBITS_ONE#int(self.Stop_bits_Box.get_active_text())
-        self.Data_bits = serial.EIGHTBITS#int(self.Data_bits_Box.get_active_text())
-        #self.Flow_Control = #self.Flow_Control_Box.get_active_text()
+        self.Baud_Rate = next((baud for baud in self.Serial_config["Baud_Rate"] if str(baud) == self.Baud_Rate_Box.get_active_text()), 115200)
+        self.Parity = next((parity for parity in self.Serial_config["Parity"] if str(parity) == self.Parity_Box.get_active_text()), serial.PARITY_NONE)
+        self.Stop_bits = next((stopbits for stopbits in self.Serial_config["Stop_bits"] if str(stopbits) == self.Stop_bits_Box.get_active_text()), serial.STOPBITS_ONE)
+        self.Data_bits = next((databits for databits in self.Serial_config["Data_bits"] if str(databits) == self.Data_bits_Box.get_active_text()), serial.EIGHTBITS)
+        self.Serial_Port_Box1.set_active_id(str(self.Serial_Port))
+        self.Baud_Rate_Box1.set_active_id((self.Baud_Rate))
         self.COMSettings.hide()
 
     def on_Discard_Options_clicked(self, button):
@@ -249,20 +265,20 @@ class Serial_COM:
     #         format="[%(asctime)s][%(levelname)s] > %(message)s",
     #     )
 
-    # def save_logs(line: str):
-    #     """
-    #     Saves logs by removing ANSI color codes from the input line and logs the line with an error level if it contains an error code, otherwise logs with an info level.
-    #     Parameters:
-    #         line (str): The input line to be logged.
-    #     Returns:
-    #         None
-    #     """
-    #     logline = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])").sub("", line)
+    def save_logs(line: str):
+        """
+        Saves logs by removing ANSI color codes from the input line and logs the line with an error level if it contains an error code, otherwise logs with an info level.
+        Parameters:
+            line (str): The input line to be logged.
+        Returns:
+            None
+        """
+        logline = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])").sub("", line)
 
-    #     if ERROR_CODE in line:
-    #         logging.error(logline)
-    #     else:
-    #         logging.info(logline)
+        if ERROR_CODE in line:
+            logging.error(logline)
+        else:
+            logging.info(logline)
 
     # def log_trace_cli():
     #     cli_parser = argparse.ArgumentParser(
