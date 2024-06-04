@@ -235,6 +235,7 @@
                                   <object class="GtkFileChooserButton" id="Log_DIR">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
+                                    <property name="action">select-folder</property>
                                     <property name="title" translatable="yes"/>
                                   </object>
                                   <packing>
@@ -409,7 +410,7 @@
                           <object class="GtkEntry" id="Command">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
-                            <property name="width-chars">83</property>
+                            <property name="width-chars">50</property>
                             <property name="input-purpose">terminal</property>
                           </object>
                           <packing>
