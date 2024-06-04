@@ -18,7 +18,7 @@ import codecs
 
 ERROR_CODE = "\033[1;31m"
 BAUD = 115200
-LOG_DIR = "logs"
+LOG_DIR = ".logs"
 
 #here's for importing the other files of spacelab-transmitter that are missing or not ready
 
@@ -52,6 +52,8 @@ class Serial_COM:
         self.builder.connect_signals(self)
         self._build_widgets()
         self._load_preferences()
+
+        self.Serial_Port = None
 
         self.run()
 
@@ -89,15 +91,17 @@ class Serial_COM:
         self.Button_Send = self.builder.get_object("Button_Send")
         self.Button_Send.connect("clicked", self.on_Button_Send_clicked)
 
-        self.Recieved_Text = self.builder.get_object("Received_Text")
+        self.Recieved_Text = self.builder.get_object("Recieved_Text")
 
         self.Text_Commands = self.builder.get_object("Text_Commands")
 
         # Serial Port Settings
         self.Serial_Port_Box1 = self.builder.get_object("Serial_Port1")
         self.Serial_Port_Box1.connect("changed", self.on_Serial_Port_Box1_changed)
+
         self.Baud_Rate_Box1 = self.builder.get_object("Baud_Rate1")
         self.Baud_Rate_Box1.connect("changed", self.on_Baud_Rate_Box1_changed)
+        
         self.Send_option = self.builder.get_object("Send_Switch")
 
         # Log Settings
@@ -105,7 +109,7 @@ class Serial_COM:
         self.Module = self.builder.get_object("Module")
         self.Log_Record = self.builder.get_object("Record_Switch")
 
-        self.Log_Dir.set_current_folder("./" + LOG_DIR)
+        self.Log_Dir.set_current_folder(LOG_DIR)
 
         # Settings Window
         self.COMSettings = self.builder.get_object("COMSettings")
@@ -151,12 +155,18 @@ class Serial_COM:
 
     def run(self):
         self.window.show_all()
+
+        self.check_thread = threading.Thread(target=self.serial_check)
+        self.check_thread.start()
         Gtk.main()
 
     def onDestroy(self, *args):
         Gtk.main_quit()    
    
     def serial_connection(self, widget):
+        self.update = False
+        self.check_thread.join()
+    
         self.Serial_Settings_Load()
 
         self.Serial = serial.Serial(port=self.Serial_Port, baudrate=self.Baud_Rate, parity=self.Parity, stopbits=self.Stop_bits, bytesize=self.Data_bits, timeout=1)#, flowcontrol=self.Flow_Control)
@@ -176,6 +186,8 @@ class Serial_COM:
         self.thread = threading.Thread(target=self.Serial_Receive_event)   
         self.thread.start()
 
+        
+
     def serial_disconnect(self, widget):
         self.button_connect.set_sensitive(True)
         self.button_disconnect.set_sensitive(False)
@@ -186,11 +198,32 @@ class Serial_COM:
         self.Button_Send.set_sensitive(False)
         self.Recieved_Text.set_editable(False)
         self.Recieved_Text.set_sensitive(False)
+        
         self.thread.join()
         self.Serial.close()
 
+        self.check_thread = threading.Thread(target=self.serial_check)
+        self.check_thread.start()        
+
     def on_preferences_clicked(self, button):
+        self.PORT_update()
         self.COMSettings.show()
+
+    def PORT_update(self):
+        Serial_Ports = Gtk.ListStore(str)
+        for comport in serial.tools.list_ports.comports(): Serial_Ports.append([str(comport.device)])
+
+        self.Serial_Port_Box.set_model(Serial_Ports)
+        self.Serial_Port_Box.set_active(next((index for index, row in enumerate(self.Serial_Port_Box.get_model()) if row[0] == str(self.Serial_Port)), -1))
+        
+        self.Serial_Port_Box1.set_model(Serial_Ports)
+        self.Serial_Port_Box1.set_active(next((index for index, row in enumerate(self.Serial_Port_Box1.get_model()) if row[0] == str(self.Serial_Port)), -1))
+
+    def serial_check(self):
+        self.update = True
+        while self.update:
+            self.PORT_update()
+            time.sleep(10)
 
     def load_Settings(self):
         for comport in serial.tools.list_ports.comports(): self.Serial_Port_Box.append_text(str(comport.device))
@@ -246,11 +279,11 @@ class Serial_COM:
         print("To do...")
 
     def on_toolbutton_clean_clicked(self, button):
-        self.Recieved_Text.set_buffer("")
+        self.Recieved_Text.set_buffer(Gtk.TextBuffer())
 
     def send_command(self):
         self.Serial.write(self.Command.get_text().encode())
-        self.Command.set_text("")
+        self.Command.set_text(None)
 
     def receive_command(self, text: str):
         received_text = self.Recieved_Text.get_buffer()
@@ -287,52 +320,6 @@ class Serial_COM:
         logline = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])").sub("", line)
 
         logging.error(logline) if ERROR_CODE in line else logging.info(logline)
-
-    # def log_trace_cli():
-    #     cli_parser = argparse.ArgumentParser(
-    #         prog="log_trace.py",
-    #         description="Reads the floripasat-2 modules log through UART",
-    #     )
-
-    #     cli_parser.add_argument("PORT", type=str, help="serial port to listen to")
-
-    #     cli_parser.add_argument(
-    #         "-f",
-    #         "--log_file",
-    #         action="store",
-    #         default="module",
-    #         type=str,
-    #         help="sets the log file name",
-    #     )
-
-    #     cli_parser.add_argument(
-    #         "-d",
-    #         "--log_dir",
-    #         action="store",
-    #         default=LOG_DIR,
-    #         type=str,
-    #         help="sets the log directory",
-    #     )
-
-    #     args = vars(cli_parser.parse_args())
-
-    #     self.setup_logging(args["log_file"], args["log_dir"])
-
-    #     dev = self.serial_connection(args["PORT"], BAUD)
-
-    #     try:
-    #         while True:
-    #             log_line = self.serial_read()
-    #             print(log_line, end="")
-    #             save_logs(log_line)
-
-    #     except KeyboardInterrupt:
-    #         print("Keyboard interrupt detected. Exiting...")
-
-    #     finally:
-    #         dev.close()
-# print([comport.device for comport in serial.tools.list_ports.comports()])
-
 
 def main():
     prog = Serial_COM()

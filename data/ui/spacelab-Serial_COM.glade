@@ -80,6 +80,7 @@
           <object class="GtkPaned">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
+            <property name="hexpand">True</property>
             <child>
               <object class="GtkBox">
                 <property name="visible">True</property>
@@ -353,36 +354,22 @@
                 <property name="can-focus">True</property>
                 <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkBox">
+                  <object class="GtkScrolledWindow">
                     <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="orientation">vertical</property>
+                    <property name="can-focus">True</property>
+                    <property name="hscrollbar-policy">never</property>
+                    <property name="shadow-type">in</property>
                     <child>
-                      <object class="GtkSeparator">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkTextView" id="Received_Text">
+                      <object class="GtkTextView" id="Recieved_Text">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
+                        <property name="vexpand">True</property>
                       </object>
-                      <packing>
-                        <property name="expand">True</property>
-                        <property name="fill">True</property>
-                        <property name="position">1</property>
-                      </packing>
                     </child>
                   </object>
                   <packing>
-                    <property name="resize">False</property>
-                    <property name="shrink">True</property>
+                    <property name="resize">True</property>
+                    <property name="shrink">False</property>
                   </packing>
                 </child>
                 <child>
@@ -410,7 +397,7 @@
                           <object class="GtkEntry" id="Command">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
-                            <property name="width-chars">50</property>
+                            <property name="width-chars">83</property>
                             <property name="input-purpose">terminal</property>
                           </object>
                           <packing>
@@ -451,12 +438,21 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkTextView" id="Text_Commands">
+                      <object class="GtkScrolledWindow">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
+                        <property name="vexpand">False</property>
+                        <property name="hscrollbar-policy">never</property>
+                        <property name="shadow-type">in</property>
+                        <child>
+                          <object class="GtkTextView" id="Text_Commands">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                          </object>
+                        </child>
                       </object>
                       <packing>
-                        <property name="expand">True</property>
+                        <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="position">2</property>
                       </packing>
