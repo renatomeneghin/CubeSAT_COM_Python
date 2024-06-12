@@ -369,10 +369,18 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkTextView" id="Received_Text">
+                      <object class="GtkScrolledWindow">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
-                        <property name="margin-bottom">163</property>
+                        <property name="shadow-type">in</property>
+                        <property name="min-content-height">250</property>
+                        <child>
+                          <object class="GtkTextView" id="Received_Text">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="editable">False</property>
+                          </object>
+                        </child>
                       </object>
                       <packing>
                         <property name="expand">True</property>
@@ -382,7 +390,7 @@
                     </child>
                   </object>
                   <packing>
-                    <property name="resize">False</property>
+                    <property name="resize">True</property>
                     <property name="shrink">True</property>
                   </packing>
                 </child>
@@ -452,10 +460,17 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkTextView" id="Text_Commands">
+                      <object class="GtkScrolledWindow">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
-                        <property name="editable">False</property>
+                        <property name="shadow-type">in</property>
+                        <property name="min-content-height">100</property>
+                        <child>
+                          <object class="GtkTextView" id="Text_Commands">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                          </object>
+                        </child>
                       </object>
                       <packing>
                         <property name="expand">True</property>
