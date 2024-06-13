@@ -353,22 +353,45 @@
                 <property name="can-focus">True</property>
                 <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkScrolledWindow">
+                  <object class="GtkBox">
                     <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="hscrollbar-policy">never</property>
-                    <property name="shadow-type">in</property>
+                    <property name="can-focus">False</property>
+                    <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkTextView" id="Recieved_Text">
+                      <object class="GtkSeparator">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkScrolledWindow" id="received_scroll">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
-                        <property name="vexpand">True</property>
+                        <property name="shadow-type">in</property>
+                        <property name="min-content-height">250</property>
+                        <child>
+                          <object class="GtkTextView" id="Received_Text">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="editable">False</property>
+                          </object>
+                        </child>
                       </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
                     </child>
                   </object>
                   <packing>
                     <property name="resize">True</property>
-                    <property name="shrink">False</property>
+                    <property name="shrink">True</property>
                   </packing>
                 </child>
                 <child>
@@ -438,11 +461,11 @@
                     </child>
                     <child>
                       <object class="GtkScrolledWindow">
+                        <property name="name">Commands_scroll</property>
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
-                        <property name="vexpand">False</property>
-                        <property name="hscrollbar-policy">never</property>
                         <property name="shadow-type">in</property>
+                        <property name="min-content-height">100</property>
                         <child>
                           <object class="GtkTextView" id="Text_Commands">
                             <property name="visible">True</property>
@@ -451,7 +474,7 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="expand">False</property>
+                        <property name="expand">True</property>
                         <property name="fill">True</property>
                         <property name="position">2</property>
                       </packing>
