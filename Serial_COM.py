@@ -6,25 +6,25 @@ from gi.repository import Gtk
 import serial
 import serial.tools.list_ports as portlists
 from serial.tools.miniterm import unichr
-import argparse
 import re
 import logging
 import os
 import threading
 import time
 from datetime import datetime
-import codecs
 
 
 ERROR_CODE = "\033[1;31m"
 BAUD = 115200
-LOG_DIR = ".logs"
+LOG_DIR = "/.Logs"
 
 #here's for importing the other files of spacelab-transmitter that are missing or not ready
 
 #CONSTANTS
 _UI_FILE_LOCAL                  = os.path.abspath(os.path.dirname(__name__)) + '/data/ui/spacelab-Serial_COM.glade'
 _UI_FILE_LINUX_SYSTEM           = '/usr/share/spacelab-Serial_COM/spacelab-Serial_COM.glade'
+
+_CURRENT_DIR_LOCAL              = os.path.abspath(os.path.dirname(__name__))
 
 _ICON_FILE_LOCAL                = os.path.abspath(os.path.dirname(__name__)) + '/data/img/spacelab_transmitter_256x256.png'
 
@@ -91,7 +91,7 @@ class Serial_COM:
         self.Button_Send = self.builder.get_object("Button_Send")
         self.Button_Send.connect("clicked", self.on_Button_Send_clicked)
 
-        self.Recieved_Text = self.builder.get_object("Recieved_Text")
+        self.Recieved_Text = self.builder.get_object("Received_Text")
 
         self.Text_Commands = self.builder.get_object("Text_Commands")
 
@@ -132,6 +132,8 @@ class Serial_COM:
         self.Button_Send.set_sensitive(False)
         self.Recieved_Text.set_editable(False)
         self.Recieved_Text.set_sensitive(False)
+        self.Text_Commands.set_editable(False)
+        self.Text_Commands.set_sensitive(False)
 
         # Serial Port Settings
         self.Serial_Port_Box = self.builder.get_object("Serial_Port")
