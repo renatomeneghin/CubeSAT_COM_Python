@@ -16,7 +16,7 @@ from datetime import datetime
 
 ERROR_CODE = "\033[1;31m"
 BAUD = 115200
-LOG_DIR = "/Logs"
+LOG_DIR = "/.Logs"
 
 #here's for importing the other files of spacelab-transmitter that are missing or not ready
 
@@ -113,7 +113,7 @@ class Serial_COM:
         self.Log_Record = self.builder.get_object("Record_Switch")
 
         self.Log_Dir.set_current_folder(_CURRENT_DIR_LOCAL + LOG_DIR)
-        self.Log_Dir.set_current_name(_CURRENT_DIR_LOCAL + LOG_DIR)
+        #self.Log_Dir.set_current_name(LOG_DIR)
 
         # Settings Window
         self.COMSettings = self.builder.get_object("COMSettings")
@@ -155,7 +155,7 @@ class Serial_COM:
         for baud in self.Serial_config["Baud_Rate"]: self.Baud_Rate_Box1.append_text(str(baud))
         self.Baud_Rate_Box1.set_active(next((index for index, row in enumerate(self.Baud_Rate_Box1.get_model()) if row[0] == str(115200)), -1))
 
-    def remove_ansi_color(string: str) -> str:
+    def remove_ansi_color(self, string: str) -> str:
         ansi_escape = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
         return ansi_escape.sub("", string)
 
@@ -331,8 +331,12 @@ class Serial_COM:
         Returns:
             None
         """
-        logline = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])").sub("", line)
-        logging.error(logline) if ERROR_CODE in line else logging.info(logline)
+        logline = self.remove_ansi_color(line)
+        
+        if ERROR_CODE in line: 
+            logging.error(logline)
+        else: 
+            logging.info(logline)
 
 def main():
     prog = Serial_COM()
