@@ -31,6 +31,7 @@ _ICON_FILE_LOCAL                = os.path.abspath(os.path.dirname(__name__)) + '
 _LOGO_FILE_LOCAL                = os.path.abspath(os.path.dirname(__name__)) + '/data/img/spacelab-logo-full-400x200.png'
 
 _DIR_CONFIG_LINUX               = '.spacelab-Serial_COM'
+
 class Serial_COM:
     def __init__(self):
         self.builder = Gtk.Builder()
@@ -86,7 +87,7 @@ class Serial_COM:
 
         # Serial Commands
         self.Command = self.builder.get_object("Command")
-        self.Command.connect("key-press-event", self.on_Command_key_press)
+        self.Command.connect("activate", self.on_Command_activate)
 
         self.Button_Send = self.builder.get_object("Button_Send")
         self.Button_Send.connect("clicked", self.on_Button_Send_clicked)
@@ -282,10 +283,8 @@ class Serial_COM:
     def on_Discard_Options_clicked(self, button):
         self.COMSettings.hide()
 
-    def on_Command_key_press(self, widget, event):
-        pass
-        # if event.keyval == Gtk.KEY_Return or event.keyval == Gtk.KEY_KP_Enter: 
-        #    self.send_command()
+    def on_Command_activate(self, widget, event):
+        self.send_command()
 
     def on_Button_Send_clicked(self, button):
         self.send_command()
@@ -324,7 +323,7 @@ class Serial_COM:
             format="[%(asctime)s][%(levelname)s] > %(message)s",
         )
 
-    def save_logs(self,line: str):
+    def save_logs(self, line: str):
         """
         Saves logs by removing ANSI color codes from the input line and logs the line with an error level if it contains an error code, otherwise logs with an info level.
         Parameters:
@@ -333,7 +332,6 @@ class Serial_COM:
             None
         """
         logline = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])").sub("", line)
-
         logging.error(logline) if ERROR_CODE in line else logging.info(logline)
 
 def main():
