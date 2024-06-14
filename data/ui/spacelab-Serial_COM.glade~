@@ -369,11 +369,11 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkScrolledWindow">
+                      <object class="GtkScrolledWindow" id="received_scroll">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="shadow-type">in</property>
-                        <property name="min-content-height">150</property>
+                        <property name="min-content-height">250</property>
                         <child>
                           <object class="GtkTextView" id="Received_Text">
                             <property name="visible">True</property>
@@ -461,10 +461,11 @@
                     </child>
                     <child>
                       <object class="GtkScrolledWindow">
+                        <property name="name">Commands_scroll</property>
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="shadow-type">in</property>
-                        <property name="min-content-height">50</property>
+                        <property name="min-content-height">100</property>
                         <child>
                           <object class="GtkTextView" id="Text_Commands">
                             <property name="visible">True</property>

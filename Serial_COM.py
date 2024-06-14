@@ -3,20 +3,20 @@ gi.require_version("Gtk","3.0")
 
 from gi.repository import Gtk
 
-import serial.tools.list_ports as portlists
 import serial
-import argparse
+import serial.tools.list_ports as portlists
+from serial.tools.miniterm import unichr
 import re
 import logging
 import os
 import threading
+import time
 from datetime import datetime
-
 
 
 ERROR_CODE = "\033[1;31m"
 BAUD = 115200
-LOG_DIR = "logs"
+LOG_DIR = "/Logs"
 
 #here's for importing the other files of spacelab-transmitter that are missing or not ready
 
@@ -42,7 +42,6 @@ class Serial_COM:
         else:
             self.builder.add_from_file(_UI_FILE_LINUX_SYSTEM)
 
-        self.init_Time = datetime.now()
         self.Serial_config = {
             "Serial_Port" : [None, "/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3"],
             "Baud_Rate" : [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400],
@@ -51,10 +50,10 @@ class Serial_COM:
             "Data_bits" : [serial.FIVEBITS , serial.SIXBITS , serial.SEVENBITS , serial.EIGHTBITS]
         }
 
+        self.Serial_Port = self.Serial_config["Serial_Port"][0]
+
         self.builder.connect_signals(self)
-
         self._build_widgets()
-
         self._load_preferences()
 
         self.run()
@@ -71,7 +70,7 @@ class Serial_COM:
         self.window.set_title("CubeSAT_COM")
 
         self.window.set_wmclass(self.window.get_title(), self.window.get_title())
-        self.window.connect("destroy", Gtk.main_quit)
+        self.window.connect("destroy", self.onDestroy)
 
         # Action Buttons
         self.button_connect = self.builder.get_object("button_connect")
@@ -94,23 +93,27 @@ class Serial_COM:
         self.Button_Send.connect("clicked", self.on_Button_Send_clicked)
 
         self.Recieved_Text = self.builder.get_object("Received_Text")
+        self.received_scroll = self.builder.get_object("received_scroll")
 
         self.Text_Commands = self.builder.get_object("Text_Commands")
+        self.Commands_scroll = self.builder.get_object("Commands_scroll")
 
         # Serial Port Settings
         self.Serial_Port_Box1 = self.builder.get_object("Serial_Port1")
+        self.Serial_Port_Box1.connect("changed", self.on_Serial_Port_Box1_changed)
+
         self.Baud_Rate_Box1 = self.builder.get_object("Baud_Rate1")
+        self.Baud_Rate_Box1.connect("changed", self.on_Baud_Rate_Box1_changed)
+        
         self.Send_option = self.builder.get_object("Send_Switch")
 
         # Log Settings
-
         self.Log_Dir = self.builder.get_object("Log_DIR")
         self.Module = self.builder.get_object("Module")
         self.Log_Record = self.builder.get_object("Record_Switch")
 
-        self.Log_Dir.set_current_folder(_CURRENT_DIR_LOCAL + "/.Logs")
-        self.Log_Dir.set_current_name("/.Logs")
-        self.Module.set_active_id("OBDH")
+        self.Log_Dir.set_current_folder(_CURRENT_DIR_LOCAL + LOG_DIR)
+        self.Log_Dir.set_current_name(_CURRENT_DIR_LOCAL + LOG_DIR)
 
         # Settings Window
         self.COMSettings = self.builder.get_object("COMSettings")
@@ -129,8 +132,12 @@ class Serial_COM:
         self.button_preferences.set_sensitive(True)
 
         self.Command.set_editable(False)
-        self.Recieved_Text.set_editable(False)
+        self.Command.set_sensitive(False)
         self.Button_Send.set_sensitive(False)
+        self.Recieved_Text.set_editable(False)
+        self.Recieved_Text.set_sensitive(False)
+        self.Text_Commands.set_editable(False)
+        self.Text_Commands.set_sensitive(False)
 
         # Serial Port Settings
         self.Serial_Port_Box = self.builder.get_object("Serial_Port")
@@ -140,21 +147,13 @@ class Serial_COM:
         self.Data_bits_Box = self.builder.get_object("Data_bits")
         self.Flow_Control_Box = self.builder.get_object("Flow_Control")
 
+        self.load_Settings()
+
         for comport in serial.tools.list_ports.comports(): self.Serial_Port_Box1.append_text(str(comport.device))
         self.Serial_Port_Box1.set_active_id(None)
 
         for baud in self.Serial_config["Baud_Rate"]: self.Baud_Rate_Box1.append_text(str(baud))
-        #print(self.Baud_Rate_Box1.get_has_entry())
-        #self.Baud_Rate_Box1.set_entry(str(115200))
-
-        self.Serial_Port = None
-        self.Baud_Rate = 115200
-        self.Parity = serial.PARITY_NONE
-        self.Stop_bits = serial.STOPBITS_ONE
-        self.Data_bits = serial.EIGHTBITS
-
-        self.setup_logging()
-
+        self.Baud_Rate_Box1.set_active(next((index for index, row in enumerate(self.Baud_Rate_Box1.get_model()) if row[0] == str(115200)), -1))
 
     def remove_ansi_color(string: str) -> str:
         ansi_escape = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
@@ -162,70 +161,124 @@ class Serial_COM:
 
     def run(self):
         self.window.show_all()
+
+        self.Serial = serial.Serial()
+        self.thread = threading.Thread(target=self.Serial_Receive_event)   
+        self.check_thread = threading.Thread(target=self.serial_check)
+
+        self.check_thread.start()
         Gtk.main()
 
     def onDestroy(self, *args):
+        self.update = False
+
+        if self.thread.is_alive(): self.check_thread.join()
+        if self.Serial.is_open: self.Serial.close()
+        if self.thread.is_alive(): self.thread.join()
+
         Gtk.main_quit()    
    
     def serial_connection(self, widget):
-        self.Serial = serial.Serial(port=self.Serial_Port, baudrate=self.Baud_Rate, parity=self.Parity, stopbits=self.Stop_bits, bytesize=self.Data_bits, timeout=1)#, flowcontrol=self.Flow_Control)
+        self.update = False
+        self.check_thread.join()
+    
+        self.Serial_Settings_Load()
 
+        self.Serial = serial.Serial(port=self.Serial_Port, baudrate=self.Baud_Rate, parity=self.Parity, stopbits=self.Stop_bits, bytesize=self.Data_bits, timeout=1)#, flowcontrol=self.Flow_Control)
+        
         self.button_connect.set_sensitive(False)
         self.button_disconnect.set_sensitive(True)
         self.button_preferences.set_sensitive(False)
 
         self.Command.set_editable(True)
+        self.Command.set_sensitive(True)
         self.Button_Send.set_sensitive(True)
-        self.Recieved_Text.set_editable(True)
+        self.Recieved_Text.set_editable(False)
+        self.Recieved_Text.set_sensitive(True)
 
-        self.thread = threading.Thread(target=self.Serial_Receive_event, args=(self.Serial,))
+        if self.Log_Record.get_active(): self.setup_logging(self.Module.get_active_text(), self.Log_Dir.get_current_folder())
+
+        self.thread = threading.Thread(target=self.Serial_Receive_event) 
         self.thread.start()
-   
+
+
     def serial_disconnect(self, widget):
         self.button_connect.set_sensitive(True)
         self.button_disconnect.set_sensitive(False)
         self.button_preferences.set_sensitive(True)
 
         self.Command.set_editable(False)
+        self.Command.set_sensitive(False)
         self.Button_Send.set_sensitive(False)
         self.Recieved_Text.set_editable(False)
+        self.Recieved_Text.set_sensitive(False)
+        
+        self.thread.join()
+        self.Serial.close()
+        
+        self.check_thread = threading.Thread(target=self.serial_check)
+        self.check_thread.start()        
 
     def on_preferences_clicked(self, button):
+        self.PORT_update()
         self.COMSettings.show()
-        self.load_Settings()
+
+    def PORT_update(self):
+        Serial_Ports = Gtk.ListStore(str)
+        for comport in serial.tools.list_ports.comports(): Serial_Ports.append([str(comport.device)])
+
+        self.Serial_Port_Box.set_model(Serial_Ports)
+        self.Serial_Port_Box.set_active(next((index for index, row in enumerate(self.Serial_Port_Box.get_model()) if row[0] == str(self.Serial_Port)), -1))
+        
+        self.Serial_Port_Box1.set_model(Serial_Ports)
+        self.Serial_Port_Box1.set_active(next((index for index, row in enumerate(self.Serial_Port_Box1.get_model()) if row[0] == str(self.Serial_Port)), -1))
+
+    def serial_check(self):
+        self.update = True
+        while self.update:
+            self.PORT_update()
+            time.sleep(2)
 
     def load_Settings(self):
         for comport in serial.tools.list_ports.comports(): self.Serial_Port_Box.append_text(str(comport.device))
-        self.Serial_Port_Box.set_active_id(self.Serial_Port)
+        self.Serial_Port_Box.set_active(next((index for index, row in enumerate(self.Serial_Port_Box.get_model()) if row[0] == "/dev/ttyUSB0"), -1))
 
         for baud in self.Serial_config["Baud_Rate"]: self.Baud_Rate_Box.append_text(str(baud))
-        self.Baud_Rate_Box.set_active_id(str(self.Baud_Rate))
+        self.Baud_Rate_Box.set_active(next((index for index, row in enumerate(self.Baud_Rate_Box.get_model()) if row[0] == str(115200)), -1))
 
         for Parity in self.Serial_config["Parity"]:  self.Parity_Box.append_text(str(Parity))
-        self.Parity_Box.set_active_id(str(self.Parity))
+        self.Parity_Box.set_active(next((index for index, row in enumerate(self.Parity_Box.get_model()) if row[0] == str(serial.PARITY_NONE)), -1))
 
         for stopbits in self.Serial_config["Stop_bits"]: self.Stop_bits_Box.append_text(str(stopbits))
-        self.Stop_bits_Box.set_active_id(str(self.Stop_bits))
+        self.Stop_bits_Box.set_active(next((index for index, row in enumerate(self.Stop_bits_Box.get_model()) if row[0] == str(serial.STOPBITS_ONE)), -1))
 
         for databits in self.Serial_config["Data_bits"]: self.Data_bits_Box.append_text(str(databits))
-        self.Data_bits_Box.set_active_id(str(self.Data_bits))
+        self.Data_bits_Box.set_active(next((index for index, row in enumerate(self.Data_bits_Box.get_model()) if row[0] == str(serial.EIGHTBITS)), -1))
 
-    def Serial_Receive_event(self, stream):
-        while self.Recieved_Text.get_sensitive():
-            if stream.in_waiting > 0:
-                self.receive_command()
-        stream.close()
-        return
+    def on_Serial_Port_Box1_changed(self, widget):
+        self.Serial_Port = widget.get_active_text()
+        self.Serial_Port_Box.set_active(next((index for index, row in enumerate(self.Serial_Port_Box.get_model()) if row[0] == widget.get_active_text()), -1))
+
+    def on_Baud_Rate_Box1_changed(self, widget):
+        self.Baud_Rate = next((baud for baud in self.Serial_config["Baud_Rate"] if str(baud) == widget.get_active_text()), 115200)
+        self.Baud_Rate_Box.set_active(next((index for index, row in enumerate(self.Baud_Rate_Box1.get_model()) if row[0] == str(widget.get_active_text())), -1))
+
+    def Serial_Receive_event(self):
+        while self.Serial.is_open and self.button_disconnect.get_sensitive():
+            self.receive_command(self.Serial.readline().decode()) if self.Serial.in_waiting else None
             
     def on_Save_Preferences_clicked(self, button):
-        self.Serial_Port = "/dev/ttyUSB0"
+        self.Serial_Settings_Load()
+        self.Serial_Port_Box1.set_active(next((index for index, row in enumerate(self.Serial_Port_Box1.get_model()) if row[0] == self.Serial_Port_Box.get_active_text()), -1))
+        self.Baud_Rate_Box1.set_active(next((index for index, row in enumerate(self.Baud_Rate_Box1.get_model()) if row[0] == str(self.Baud_Rate_Box.get_active_text())), -1))
+        self.COMSettings.hide()
+
+    def Serial_Settings_Load(self):
+        self.Serial_Port = self.Serial_Port_Box.get_active_text()
         self.Baud_Rate = next((baud for baud in self.Serial_config["Baud_Rate"] if str(baud) == self.Baud_Rate_Box.get_active_text()), 115200)
         self.Parity = next((parity for parity in self.Serial_config["Parity"] if str(parity) == self.Parity_Box.get_active_text()), serial.PARITY_NONE)
         self.Stop_bits = next((stopbits for stopbits in self.Serial_config["Stop_bits"] if str(stopbits) == self.Stop_bits_Box.get_active_text()), serial.STOPBITS_ONE)
         self.Data_bits = next((databits for databits in self.Serial_config["Data_bits"] if str(databits) == self.Data_bits_Box.get_active_text()), serial.EIGHTBITS)
-        self.Serial_Port_Box1.set_active_id(str(self.Serial_Port))
-        self.Baud_Rate_Box1.set_active_id((self.Baud_Rate))
-        self.COMSettings.hide()
 
     def on_Discard_Options_clicked(self, button):
         self.COMSettings.hide()
@@ -238,25 +291,26 @@ class Serial_COM:
         print("To do...")
 
     def on_toolbutton_clean_clicked(self, button):
-        self.Recieved_Text.set_buffer("")
+        self.Recieved_Text.set_buffer(Gtk.TextBuffer())
 
     def send_command(self):
         self.Serial.write(self.Command.get_text().encode())
-        self.Command.set_text("")
+        self.Command.set_text(None)
 
-    def receive_command(self):
+    def receive_command(self, text: str):
         received_text = self.Recieved_Text.get_buffer()
-        received_text.insert(received_text.get_end_iter(), self.Serial.readline().decode() + "\n",-1)
+        received_text.insert(received_text.get_end_iter(), text,-1)
         self.Recieved_Text.set_buffer(received_text)
-        if self.Log_Record.get_active(): self.save_logs(self.Serial.readline().decode())
-        
+        adjustment = self.received_scroll.get_vadjustment()
+        adjustment.set_value( adjustment.get_upper() ) if adjustment.get_upper() > adjustment.get_page_size() else adjustment.set_value( adjustment.get_upper() - adjustment.get_page_size() )
+        if self.Log_Record.get_active(): self.save_logs(text)
 
-    def setup_logging(self):
-        filename = self.Log_Dir.get_current_folder() + "/" + self.Module.get_active_text() + "_" + str(self.init_Time) + ".log"
+    def setup_logging(self,module: str, log_dir: str):
+        filename = log_dir + "/" + module + " " + str(datetime.now()) +".log"
 
-        if not os.path.exists(self.Log_Dir.get_current_folder()):
-            os.makedirs(str(self.Log_Dir.get_current_folder()))
-            print(f"Creating log directory on: ./{self.Log_Dir}")
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+            print(f"Creating log directory on: {log_dir}")
 
         if not os.path.exists(filename):
             with open(filename, "w") as f:
@@ -277,12 +331,8 @@ class Serial_COM:
         Returns:
             None
         """
-        logline = self.remove_ansi_color (line)
-        
-        if ERROR_CODE in line:
-            logging.error(logline)
-        else:
-            logging.info(logline)
+        logline = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])").sub("", line)
+        logging.error(logline) if ERROR_CODE in line else logging.info(logline)
 
 def main():
     prog = Serial_COM()
