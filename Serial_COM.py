@@ -1,7 +1,7 @@
 import gi
 gi.require_version("Gtk","3.0")
 
-from gi.repository import Gtk
+from gi.repository import Gtk, GLib
 
 import serial
 import serial.tools.list_ports as portlists
@@ -12,7 +12,9 @@ import os
 import threading
 import time
 from datetime import datetime
+# import faulthandler
 
+# faulthandler.enable()
 
 ERROR_CODE = "\033[1;31m"
 BAUD = 115200
@@ -190,6 +192,9 @@ class Serial_COM:
         self.button_disconnect.set_sensitive(True)
         self.button_preferences.set_sensitive(False)
 
+        self.Serial_Port_Box1.set_sensitive(False)
+        self.Baud_Rate_Box1.set_sensitive(False)
+
         self.Command.set_editable(True)
         self.Command.set_sensitive(True)
         self.Button_Send.set_sensitive(True)
@@ -206,6 +211,9 @@ class Serial_COM:
         self.button_connect.set_sensitive(True)
         self.button_disconnect.set_sensitive(False)
         self.button_preferences.set_sensitive(True)
+
+        self.Serial_Port_Box1.set_sensitive(True)
+        self.Baud_Rate_Box1.set_sensitive(True)
 
         self.Command.set_editable(False)
         self.Command.set_sensitive(False)
@@ -301,9 +309,14 @@ class Serial_COM:
         received_text = self.Recieved_Text.get_buffer()
         received_text.insert(received_text.get_end_iter(), text,-1)
         self.Recieved_Text.set_buffer(received_text)
-        adjustment = self.received_scroll.get_vadjustment()
-        adjustment.set_value( adjustment.get_upper() ) if adjustment.get_upper() > adjustment.get_page_size() else adjustment.set_value( adjustment.get_upper() - adjustment.get_page_size() )
+        self.scroll_down()
         if self.Log_Record.get_active(): self.save_logs(text)
+
+    def scroll_down(self):
+        def scroll():
+            adjustment = self.received_scroll.get_vadjustment()
+            adjustment.set_value( adjustment.get_upper() - adjustment.get_page_size() )
+        GLib.idle_add(scroll)
 
     def setup_logging(self,module: str, log_dir: str):
         filename = log_dir + "/" + module + " " + str(datetime.now()) +".log"

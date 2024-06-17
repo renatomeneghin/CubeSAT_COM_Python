@@ -1,8 +1,2 @@
 PyGObject
-pyngham
-numpy
-scipy
-ephem
-pyzmq
-matplotlib
 pyserial
