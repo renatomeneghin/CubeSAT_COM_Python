@@ -12,9 +12,6 @@ import os
 import threading
 import time
 from datetime import datetime
-# import faulthandler
-
-# faulthandler.enable()
 
 ERROR_CODE = "\033[1;31m"
 BAUD = 115200
@@ -174,7 +171,7 @@ class Serial_COM:
     def onDestroy(self, *args):
         self.update = False
 
-        if self.thread.is_alive(): self.check_thread.join()
+        if self.check_thread.is_alive(): self.check_thread.join()
         if self.Serial.is_open: self.Serial.close()
         if self.thread.is_alive(): self.thread.join()
 
@@ -194,6 +191,11 @@ class Serial_COM:
 
         self.Serial_Port_Box1.set_sensitive(False)
         self.Baud_Rate_Box1.set_sensitive(False)
+        self.Send_option.set_sensitive(False)
+
+        self.Log_Dir.set_sensitive(False)
+        self.Module.set_sensitive(False)
+        self.Log_Record.set_sensitive(False)
 
         self.Command.set_editable(True)
         self.Command.set_sensitive(True)
@@ -214,6 +216,11 @@ class Serial_COM:
 
         self.Serial_Port_Box1.set_sensitive(True)
         self.Baud_Rate_Box1.set_sensitive(True)
+        self.Send_option.set_sensitive(True)
+
+        self.Log_Dir.set_sensitive(True)
+        self.Module.set_sensitive(True)
+        self.Log_Record.set_sensitive(True)
 
         self.Command.set_editable(False)
         self.Command.set_sensitive(False)
@@ -264,12 +271,17 @@ class Serial_COM:
         self.Data_bits_Box.set_active(next((index for index, row in enumerate(self.Data_bits_Box.get_model()) if row[0] == str(serial.EIGHTBITS)), -1))
 
     def on_Serial_Port_Box1_changed(self, widget):
-        self.Serial_Port = widget.get_active_text()
-        self.Serial_Port_Box.set_active(next((index for index, row in enumerate(self.Serial_Port_Box.get_model()) if row[0] == widget.get_active_text()), -1))
+        GLib.idle_add(self.Combo_Box_Handler, widget)
 
     def on_Baud_Rate_Box1_changed(self, widget):
-        self.Baud_Rate = next((baud for baud in self.Serial_config["Baud_Rate"] if str(baud) == widget.get_active_text()), 115200)
-        self.Baud_Rate_Box.set_active(next((index for index, row in enumerate(self.Baud_Rate_Box1.get_model()) if row[0] == str(widget.get_active_text())), -1))
+        GLib.idle_add(self.Combo_Box_Handler, widget)
+
+    def Combo_Box_Handler(self, widget):
+        self.Serial_Port = self.Serial_Port_Box1.get_active_text()
+        self.Serial_Port_Box.set_active(next((index for index, row in enumerate(self.Serial_Port_Box1.get_model()) if row[0] == self.Serial_Port_Box1.get_active_text()), -1))
+
+        self.Baud_Rate = self.Baud_Rate_Box1.get_active_text()
+        self.Baud_Rate_Box.set_active(next((index for index, row in enumerate(self.Baud_Rate_Box1.get_model()) if row[0] == str(self.Baud_Rate_Box1.get_active_text())), -1))
 
     def Serial_Receive_event(self):
         while self.Serial.is_open and self.button_disconnect.get_sensitive():
